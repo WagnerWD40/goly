@@ -13,7 +13,7 @@ func GetAllRedirects(ctx *fiber.Ctx) error {
 	golies, err := model.GetAllGollies()
 
 	if err != nil {
-		return errorhandler.InternalServerErrorHandler(ctx, err, "error getting all goly links")
+		return errorhandler.InternalServerError(ctx, err, "error getting all goly links")
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(golies)
@@ -23,13 +23,13 @@ func GetGoly(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("id"), 10, 64)
 
 	if err != nil {
-		return errorhandler.InternalServerErrorHandler(ctx, err, "Could not parse url id")
+		return errorhandler.InternalServerError(ctx, err, "Could not parse url id")
 	}
 
 	goly, err := model.GetGoly(id)
 
 	if err != nil {
-		return errorhandler.InternalServerErrorHandler(ctx, err, "error getting goly link")
+		return errorhandler.InternalServerError(ctx, err, "error getting goly link")
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(goly)
@@ -43,7 +43,7 @@ func CreateGoly(ctx *fiber.Ctx) error {
 	err := ctx.BodyParser(&goly)
 
 	if err != nil {
-		return errorhandler.InternalServerErrorHandler(ctx, err, "error parsing JSON")
+		return errorhandler.BadRequest(ctx, err, "error parsing JSON")
 	}
 
 	if goly.Random {
@@ -53,9 +53,47 @@ func CreateGoly(ctx *fiber.Ctx) error {
 	err = model.CreateGoly(goly)
 
 	if err != nil {
-		return errorhandler.InternalServerErrorHandler(ctx, err, "could not create goly in DB")
+		return errorhandler.InternalServerError(ctx, err, "could not create goly in DB")
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(goly)
 
+}
+
+func UpdateGoly(ctx *fiber.Ctx) error {
+	ctx.Accepts("application/json")
+
+	var goly model.Goly
+
+	err := ctx.BodyParser(&goly)
+
+	if err != nil {
+		return errorhandler.BadRequest(ctx, err, "error parsing JSON")
+	}
+
+	err = model.UpdateGoly(goly)
+
+	if err != nil {
+		return errorhandler.InternalServerError(ctx, err, "could not update link in DB")
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(goly)
+}
+
+func DeleteGoly(ctx *fiber.Ctx) error {
+	id, err := strconv.ParseUint(ctx.Params("id"), 10, 64)
+
+	if err != nil {
+		return errorhandler.BadRequest(ctx, err, "could not parse ir from url")
+	}
+
+	err = model.DeleteGoly(id)
+
+	if err != nil {
+		return errorhandler.InternalServerError(ctx, err, "could not delete goly in DB")
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "goly deleted",
+	})
 }

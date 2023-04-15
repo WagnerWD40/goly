@@ -19,6 +19,8 @@ func SetupAndListen() {
 	router.Get("/goly", controllers.GetAllRedirects)
 	router.Get("/goly/:id", controllers.GetGoly)
 	router.Post("/goly", controllers.CreateGoly)
+	router.Put("/goly", controllers.UpdateGoly)
+	router.Delete("/goly/:id", controllers.DeleteGoly)
 
 	router.Listen(":3000")
 }
