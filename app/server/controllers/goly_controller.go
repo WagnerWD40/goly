@@ -4,6 +4,7 @@ import (
 	"app/model"
 	"app/server/errorhandler"
 	"app/utils"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -96,4 +97,23 @@ func DeleteGoly(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "goly deleted",
 	})
+}
+
+func Redirect(ctx *fiber.Ctx) error {
+	golyurl := ctx.Params("redirect")
+
+	goly, err := model.FindByGolyUrl(golyurl)
+
+	if err != nil {
+		return errorhandler.InternalServerError(ctx, err, "could not find goly in DB")
+	}
+
+	goly.Clicked += 1
+
+	err = model.UpdateGoly(goly)
+	if err != nil {
+		fmt.Println("error updating goly status " + golyurl)
+	}
+
+	return ctx.Redirect(goly.Redirect, fiber.StatusTemporaryRedirect)
 }
